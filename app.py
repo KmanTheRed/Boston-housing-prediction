@@ -20,25 +20,32 @@ def hello_world():
 @app.route("/predict", methods=["GET"])
 def predict():
     if request.method == 'GET':
+        # Create a dictionary to store the parameters
+        params = {
+            'CRIM': request.args.get('CRIM'),
+            'ZN': request.args.get('ZN'),
+            'INDUS': request.args.get('INDUS'),
+            'CHAS': request.args.get('CHAS'),
+            'NOX': request.args.get('NOX'),
+            'RM': request.args.get('RM'),
+            'AGE': request.args.get('AGE'),
+            'DIS': request.args.get('DIS'),
+            'RAD': request.args.get('RAD'),
+            'TAX': request.args.get('TAX'),
+            'PTRATIO': request.args.get('PTRATIO'),
+            'LSTAT': request.args.get('LSTAT')
+        }
         
-        crim = float(request.args.get('CRIM'))
-        zn = float(request.args.get('ZN'))
-        indus = float(request.args.get('INDUS'))
-        chas = float(request.args.get('CHAS'))
-        nox = float(request.args.get('NOX'))
-        rm = float(request.args.get('RM'))
-        age = float(request.args.get('AGE'))
-        dis = float(request.args.get('DIS'))
-        rad = float(request.args.get('RAD'))
-        tax = float(request.args.get('TAX'))
-        ptratio = float(request.args.get('PTRATIO'))
-        lstat = float(request.args.get('LSTAT'))
-
-        final_features = [[crim, zn, indus, chas, nox, rm, age, dis, rad, tax, ptratio, lstat]]
-
-        prediction = model.predict(final_features)
-
-    return jsonify(str("Housing Price:  " + str(prediction[0])))
-
+        # Remove None values and convert remaining to float
+        params = {k: float(v) for k, v in params.items() if v is not None}
+        
+        # Check if we have all required features
+        required_features = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'LSTAT']
+        if all(feature in params for feature in required_features):
+            final_features = [[params[feature] for feature in required_features]]
+            prediction = model.predict(final_features)
+            return jsonify({'prediction': prediction[0]})
+        else:
+            return jsonify({'error': 'Missing required features'}), 400
 if __name__ == '__main__':
     app.run(debug=True)
